@@ -1,0 +1,695 @@
+/*
+    Developer: zhijie Duan
+    ProjectName: SnakeGluttony 3.0
+*/
+
+#include <iostream>
+#include <graphics.h>
+#include <conio.h>
+#include <Windows.h>
+#include <mmsystem.h>
+#include "Level.h"
+#include "EachOther.h"
+
+using namespace std;
+
+#pragma comment(lib,"winmm.lib")
+#define MAX_SNAKE 500
+#define GRAPH_WIDE 800
+#define GRAPH_HEIGHT 600
+
+
+enum DIR
+{
+    UP,DOWN,LEFT,RIGHT
+};
+
+class Snake
+{
+public:
+    int score;
+    int num;
+    int size;
+    DIR dir;
+    POINT coor[MAX_SNAKE];
+};
+
+class Food
+{
+public:
+    int size;
+    bool flag = true;
+    POINT coor;
+};
+
+Snake snake;
+Food food;
+extern int SPEED = 10;
+extern string parameter="普通";
+extern string SkinOfsnake="China";
+extern int Level_Count = 0;
+
+void BackGound();
+void Judgment();
+void Countdown();
+void AccountMune();
+void GameInit();
+void GameRendering();
+void SnakeMove(enum DIR dirc);
+void KeyContol();
+void GameRule();
+void BarrierRule();
+void FlyObjRule();
+void EarlyWarningRule();
+void UpdateFoodPosition();
+void Mune();
+void SttingGraph();
+void PlayMusic();
+void LinkPlugins();
+void Skin();
+
+void BackGound()
+{
+    IMAGE back_one;
+    loadimage(&back_one, _T("Backimage.jpg"),800,600);
+    putimage(0, 0, &back_one);
+}
+
+void Judgment()
+{
+    std::cout << "您失败了!是否继续游戏?" << std::endl;
+    ++Level_Count;
+    cout << "当前是第: " << Level_Count << " 次机会" << endl;
+    cout << endl;
+    cout << "1: 继续游戏" << endl << "2: 退出游戏" << endl;
+    cout << endl;
+    char temp;
+    cin >> temp;
+    switch (temp)
+    {
+        case '1':
+        {
+            Countdown();
+            GameInit();
+            EarWarn.FoodShow = true;
+            if (parameter == "困难")
+            {
+                Level_Three_count = -5;
+            }
+            else if (parameter == "普通")
+            {
+                Level_Three_count = 0;
+            }
+            else if (parameter == "简单")
+            {
+                Level_Three_count = 3;
+            }
+            return;
+        }
+        case '2':
+        {
+            cout << "您已正常退出,欢迎下次游玩!" << endl;
+            exit(0);
+        }
+        default:
+        {
+            cout << "请输入正确的选项" << endl;
+            cout << endl;
+            break;
+        }
+    }
+}
+
+void Countdown()
+{
+    cout << "游戏即将开始!" << endl;
+    cout << "倒计时5秒" << endl;
+    int time = 5;
+    while (time >= 0)
+    {
+        cout << time << endl;
+        Sleep(1000);
+        time = time - 1;
+    }
+}
+
+void Skin()
+{
+    IMAGE skin_one;
+    loadimage(&skin_one, _T("Dress_one.jpg"),50,50);
+    putimage(50, 460, &skin_one);
+
+    IMAGE skin_two;
+    loadimage(&skin_two, _T("Dress_two.jpg"), 50, 50);
+    putimage(150, 460, &skin_two);
+
+    IMAGE skin_three;
+    loadimage(&skin_three, _T("Dress_three.jpg"), 50, 50);
+    putimage(240, 460, &skin_three);
+
+    IMAGE skin_four;
+    loadimage(&skin_four, _T("Dress_four.jpg"), 50, 50);
+    putimage(330, 460, &skin_four);
+
+    IMAGE skin_five;
+    loadimage(&skin_five, _T("Dress_five.jpg"), 50, 50);
+    putimage(420, 460, &skin_five);
+
+    IMAGE skin_six;
+    loadimage(&skin_six, _T("Dress_six.jpg"), 50, 50);
+    putimage(500, 460, &skin_six);
+}
+
+void LinkPlugins()
+{
+    Mune();
+    system("cls");
+    cout << "请输入您的选项: " << endl;
+    char temp;
+    cin >> temp;
+    switch (temp)
+    {
+        case 'E':
+        {
+            //This Pree 'E' is goto the Stting Graph
+        }
+        case 't':
+        {
+            //This Pree 'E' is goto the Stting Graph
+        }
+        case 'e':
+        {
+            //This Pree 'E' is goto the Stting Graph
+        }
+        case 'T':
+        {
+            //Init Stting Graph(New Graph)
+            SttingGraph();
+            while (true)
+            {
+                cout << "当前难度: " << parameter << endl;
+                cout << "当前速度: " << SPEED << endl;
+                cout << "当前皮肤: " << SkinOfsnake << endl;
+                cout << endl;
+                cout << "请输入您的选项: " << endl;
+                char temp_02;
+                cin >> temp_02;
+                switch (temp_02)
+                {
+                    case '+':
+                    {
+                        if (parameter == "简单" || parameter == "困难")
+                        {
+                            cout << "当前难度不支持修改速度" << endl;
+                            cout << endl;
+                            break;
+                        }
+                        SPEED += 10;
+                        break;
+                    }
+                    case '-':
+                    {
+                        if (parameter == "简单" || parameter == "困难")
+                        {
+                            cout << "当前难度不支持修改速度" << endl;
+                            cout << endl;
+                            break;
+                        }
+                        SPEED -= 10;
+                        break;
+                    }
+                    case 'E':
+                    {
+                        return;
+                        break;
+                    }
+                    case 'P':
+                    {
+                        parameter = "简单";
+                        Level_Three_count = 3;
+                        SPEED = 10;
+                        break;
+                    }
+                    case 'L':
+                    {
+                        parameter = "普通";
+                        Level_Three_count = 0;
+                        break;
+                    }
+                    case 'K':
+                    {
+                        parameter = "困难";
+                        Level_Three_count = -5;
+                        SPEED = 60;
+                    }
+                    case 'Q':
+                    {
+                        SkinOfsnake = "Aget";
+                        cout << "阿根廷皮肤替换成功!" << endl;
+                        cout << endl;
+                        break;
+                    }
+                    case 'M':
+                    {
+                        SkinOfsnake = "China";
+                        cout << "中国皮肤替换成功!" << endl;
+                        cout << endl;
+                        break;
+                    }
+                    case 'W':
+                    {
+                        SkinOfsnake = "Kroe";
+                        cout << "韩国皮肤替换成功!" << endl;
+                        cout << endl;
+                        break;
+                    }
+                    case 'N':
+                    {
+                        SkinOfsnake = "Franch";
+                        cout << "法国皮肤替换成功!" << endl;
+                        cout << endl;
+                        break;
+                    }
+                    case 'B':
+                    {
+                        SkinOfsnake = "England";
+                        cout << "英国皮肤替换成功!" << endl;
+                        cout << endl;
+                        break;
+                    }
+                    case 'V':
+                    {
+                        SkinOfsnake = "Bazi";
+                        cout << "巴西皮肤替换成功!" << endl;
+                        cout << endl;
+                        break;
+                    }
+                    default:
+                    {
+                        cout << "请输入正确的选项!" << endl;
+                        cout << endl;
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+        case 'R': 
+        {
+            cout << "您已成功退出游戏" << endl;
+            exit(0);
+            break;
+        }
+    }
+}
+
+void Mune()
+{
+    initgraph(GRAPH_WIDE, GRAPH_HEIGHT - 65, SHOWCONSOLE);
+    IMAGE img_mune;
+    loadimage(&img_mune, _T("mune.png",800,600));
+    putimage(0, 0, &img_mune);
+}
+
+void SttingGraph()
+{
+    initgraph(GRAPH_WIDE, GRAPH_HEIGHT, SHOWCONSOLE);
+    IMAGE img_stting;
+    loadimage(&img_stting, _T("Stting.jpg"),800,600);
+    putimage(0, 0, &img_stting);
+    Skin();
+}
+
+void PlayMusic()
+{
+   
+    srand(GetTickCount());
+    int temp = rand() % 7;
+    switch (temp)
+    {
+        case 0:
+        {
+            mciSendString(_T("open Music_one.mp3"), NULL, 0, NULL);
+            mciSendString(_T("play Music_one.mp3"), NULL, 0, NULL);
+            break;
+        }
+        case 1:
+        {
+            mciSendString(_T("open Music_one.mp3"), NULL, 0, NULL);
+            mciSendString(_T("play Music_one.mp3"), NULL, 0, NULL);
+            break;
+        }
+        case 2:
+        {
+            mciSendString(_T("open Music_two.mp3"), NULL, 0, NULL);
+            mciSendString(_T("play Music_two.mp3"), NULL, 0, NULL);
+            break;
+        }
+        case 3:
+        {
+            mciSendString(_T("open Music_three.mp3"), NULL, 0, NULL);
+            mciSendString(_T("play Music_three.mp3"), NULL, 0, NULL);
+            break;
+        }
+        case 4:
+        {
+            mciSendString(_T("open Music_four.mp3"), NULL, 0, NULL);
+            mciSendString(_T("play Music_four.mp3"), NULL, 0, NULL);
+            break;
+        }
+        case 5:
+        {
+            mciSendString(_T("open Music_five.mp3"), NULL, 0, NULL);
+            mciSendString(_T("play Music_five.mp3"), NULL, 0, NULL);
+            break;
+        }
+        case 6:
+        {
+            mciSendString(_T("open Music_six.mp3"), NULL, 0, NULL);
+            mciSendString(_T("play Music_six.mp3"), NULL, 0, NULL);
+            break;
+        }
+    }
+    
+}
+
+void AccountMune()
+{
+    std::cout << "                                        欢迎进入贪吃蛇用户登录系统      " << std::endl;
+    std::cout<<std::endl;
+    std::cout << "                                        1:使用账号密码登陆      " << std::endl;
+    std::cout << "                                        2:注册一个账号(每个主机只能注册一个账户)      " << std::endl;
+    std::cout << "                                        3:忘记密码?      " << std::endl;
+    std::cout << "                                        4:退出系统      " << std::endl;
+    std::cout << "                                        5:开始游戏(在您已经登陆的情况下)      " << std::endl;
+    std::cout << std::endl;
+    std::cout << "                                     温馨提示: 本游戏所有设置均在此终端上操作      " << std::endl;
+    cout << endl;
+    
+    while (true)
+    {
+        std::cout << "请输入您的选项: " << std::endl;
+        char choose;
+        cin >> choose;
+        switch (choose)
+        {
+        case '1':
+            Landing();
+            break;
+        case '2':
+            EnrollAccount();
+            system("pause");
+            break;
+        case '3':
+            ForgetPassWord();
+            system("pause");
+            break;
+        case '4':
+            ExitSystem();
+            break;
+        case '5':
+            if (Pastport)
+            {
+                return;
+            }
+            else
+            {
+                cout << "您还没有登陆,不能进行游戏" << endl;
+            }
+        }
+    }
+}
+
+void GameInit()
+{
+    srand(GetTickCount());
+    snake.dir = RIGHT;
+    snake.num = 3;
+    snake.size = 20;
+    snake.score = 0;
+    for (int i=0;i<3;i++)
+    {
+        snake.coor[i].x = 60-(i+2) * snake.size;
+        snake.coor[i].y = 0;
+    }
+    food.size = 20;
+    food.coor.x = ((rand() % 779) / 20) * 20;
+    food.coor.y = ((rand() % 579) / 20) * 20;
+}
+
+void GameRendering()
+{
+    IMAGE skin_one;
+    loadimage(&skin_one, _T("Dress_one.jpg"), 20, 20);
+    IMAGE skin_two;
+    loadimage(&skin_two, _T("Dress_two.jpg"), 20, 20);
+    IMAGE skin_three;
+    loadimage(&skin_three, _T("Dress_three.jpg"), 20, 20);
+    IMAGE skin_four;
+    loadimage(&skin_four, _T("Dress_four.jpg"), 20, 20);
+    IMAGE skin_five;
+    loadimage(&skin_five, _T("Dress_five.jpg"), 20, 20);
+    IMAGE skin_six;
+    loadimage(&skin_six, _T("Dress_six.jpg"), 20, 20);
+    for (int i = 0; i < snake.num; i++)
+    {
+        fillrectangle(snake.coor[i].x,snake.coor[i].y,snake.coor[i].x+snake.size,snake.coor[i].y+snake.size);
+        if (SkinOfsnake == "Aget")
+        {
+            putimage(snake.coor[i].x, snake.coor[i].y, &skin_one);
+        }
+        else if (SkinOfsnake == "China")
+        {
+            putimage(snake.coor[i].x, snake.coor[i].y, &skin_two);
+        }
+        else if (SkinOfsnake == "Kroe")
+        {
+            putimage(snake.coor[i].x, snake.coor[i].y, &skin_three);
+        }
+        else if (SkinOfsnake == "Franch")
+        {
+            putimage(snake.coor[i].x, snake.coor[i].y, &skin_four);
+        }
+        else if (SkinOfsnake == "England")
+        {
+            putimage(snake.coor[i].x, snake.coor[i].y, &skin_five);
+        }
+        else if (SkinOfsnake == "Bazi")
+        {
+            putimage(snake.coor[i].x, snake.coor[i].y, &skin_six);
+        }
+    }
+    if (food.flag)
+    {
+        setfillcolor(RGB(247, 129, 102));
+        setlinecolor(RGB(230, 116, 99));
+        fillrectangle(food.coor.x, food.coor.y, food.coor.x + food.size, food.coor.y + food.size);
+    }
+}
+
+void UpdateFoodPosition()
+{
+    srand(GetTickCount());
+    food.coor.x = ((rand() % 796) / 20) * 20;
+    food.coor.y = ((rand() % 591) / 20) * 20;
+}
+
+void GameRule()
+{
+    if (snake.coor[0].x == food.coor.x && snake.coor[0].x +snake.size == food.coor.x + food.size &&
+        snake.coor[0].y == food.coor.y && snake.coor[0].y +snake.size == food.coor.y + food.size)
+    {
+        food.flag = false;
+        snake.num++;
+        snake.score += 10;
+        //snake.coor[snake.num - 1].x = snake.coor[snake.num - 2].x - snake.size;
+        //snake.coor[snake.num - 1].y = snake.coor[snake.num - 2].y;
+    }
+    if (!(food.flag)&&EarWarn.FoodShow)
+    {
+        UpdateFoodPosition();
+        food.flag = true;
+    }
+    if (snake.coor[0].y < 0 || snake.coor[0].y > 600 || snake.coor[0].x < 0 || snake.coor[0].x > 800)
+    {
+        Judgment();
+    }
+}
+
+void FlyObjRule()
+{
+    for (int i = 0; i < LEVEL_TWO_MAXNUM; i++)
+    {
+        if (snake.coor[0].x == flyobj.coor[i].x && snake.coor[0].y == flyobj.coor[i].y)
+        {
+            Judgment();
+        }
+    }
+    
+}
+
+void BarrierRule()
+{
+    for (int i = 0; i < LEVEL_ONE_MAXNUM; i++)
+    {
+        if (snake.coor[0].x == barr.coor[i].x && snake.coor[0].y == barr.coor[i].y)
+        {
+            Judgment();
+        }
+    }
+}
+
+void EarlyWarningRule()
+{
+    if (EarWarn.Key)
+    {
+        for (int i = 0; i < LEVEL_THREE_MAXNUM; i++)
+        {
+            if (snake.coor[0].x > EarWarn.coor[i].x && snake.coor[0].y > EarWarn.coor[i].y && snake.coor[0].x < EarWarn.coor[i].x + EarWarn.size && snake.coor[0].y < EarWarn.coor[i].y + EarWarn.size)
+            {
+                Judgment();
+            }
+        }
+    }
+}
+
+void SnakeMove(enum DIR dirc)
+{
+    for (int i = snake.num - 1; i > 0; i--)
+    {
+        snake.coor[i] = snake.coor[i-1];
+    }
+    switch (dirc)
+    {
+    case UP:
+        snake.coor[0].y = snake.coor[0].y - snake.size;
+        break;
+
+    case DOWN:
+        snake.coor[0].y = snake.coor[0].y + snake.size;
+        break;
+
+    case LEFT:
+        snake.coor[0].x = snake.coor[0].x - snake.size;
+        break;
+
+    case RIGHT:
+        snake.coor[0].x = snake.coor[0].x + snake.size;
+        break;
+    }
+}
+
+void GameWin()
+{
+    cout << endl;
+    cout << "恭喜你,通关了! 一共用了: " << Level_Count << " 次机会" <<" 通关难度: "<<parameter<< endl;
+    cout << "1:继续游戏" << endl << "2:退出游戏" << endl;
+    char temp;
+    cin >> temp;
+    switch (temp)
+    {
+    case '1':
+        GameInit();
+        if (parameter == "困难")
+        {
+            Level_Three_count = -5;
+        }
+        else if (parameter == "普通")
+        {
+            Level_Three_count = 0;
+        }
+        else if (parameter == "简单")
+        {
+            Level_Three_count = 3;
+        }
+        EarWarn.FoodShow = true;
+        return;
+    case '2':
+        cout << "您已经退出游戏!欢迎下次游玩!" << endl;
+        exit(0);
+    default:
+        cout << "请输入正确的选项" << endl;;
+        GameInit();
+        if (parameter == "困难")
+        {
+            Level_Three_count = -5;
+        }
+        else if (parameter == "普通")
+        {
+            Level_Three_count = 0;
+        }
+        else if (parameter == "简单")
+        {
+            Level_Three_count = 3;
+        }
+        EarWarn.FoodShow = true;
+        return;
+    }
+}
+
+void KeyContol()
+{
+    if (GetAsyncKeyState(VK_UP))
+    {
+        snake.dir = UP;
+    }
+    else if (GetAsyncKeyState(VK_DOWN))
+    {
+        snake.dir = DOWN;
+    }
+    else if (GetAsyncKeyState(VK_LEFT))
+    {
+        snake.dir = LEFT;
+    }
+    else if (GetAsyncKeyState(VK_RIGHT))
+    {
+        snake.dir = RIGHT;
+    }
+}
+
+int main()
+{ 
+    PlayMusic();
+    AccountMune();
+    LinkPlugins();
+    Countdown();
+    initgraph(GRAPH_WIDE, GRAPH_HEIGHT, SHOWCONSOLE);
+    setbkcolor(YELLOW);
+    GameInit();
+    InitLevel();
+    UpdateEarWarnPosition();
+    BeginBatchDraw();
+    while (true)
+    {
+        BackGound();
+        if (snake.score >= 30 && snake.score<= 100)
+        {
+            Level_one();
+            BarrierRule();
+        }
+        if (snake.score >= 60 && snake.score <= 100)
+        {
+            Level_two();
+            FlyObjRule();
+        }
+        if (snake.score > 100 && Level_Three_count <= 5)
+        {
+            Level_Three();
+            EarlyWarningRule();
+        }
+        if (Level_Three_count > 5)
+        {
+            GameWin();
+            Countdown();
+        }
+        GameRule();
+        SnakeMove(snake.dir);
+        KeyContol();
+        GameRendering();
+        FlushBatchDraw();
+        Sleep(100-(SPEED));
+        cleardevice();
+    }
+    closegraph();
+    return 0;
+}
